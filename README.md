@@ -5,7 +5,7 @@ To use Random Music Generator you have to:
 
 1) Install all the packages, from the requirements.txt
 # you can use this comand
-  pip install -r requirements.txt
+        pip install -r requirements.txt
 
 2) Start simple_generator
 
