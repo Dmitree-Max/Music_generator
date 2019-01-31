@@ -13,4 +13,5 @@ To use Random Music Generator you have to:
 
 4) You should write in console p, s, or b, depends on what you want to do
 
-5) If you want to safe your melody, you should have out.mid file in the same folder, where simple_generator is
+5) You can add the name of file as argument like this:
+        python simple_generator "MyFileName"
