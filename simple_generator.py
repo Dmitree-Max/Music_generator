@@ -1,23 +1,20 @@
 
 from midiutil.MidiFile import MIDIFile
 import random
-import sys
 import pygame
+from optparse import OptionParser
 
 
-# we expect input mode
-
-# work with input arguments
-arr = sys.argv[:]
-if len(arr) > 1:
-    file = arr[1]
-else:
-    file = "out.mid"
+parser = OptionParser()
+parser.add_option("-f", "--file", dest="filename", default="out.mid")
+options, remainder = parser.parse_args()
+file = options.filename
 
 
 # choose working mode
 try:
-    mode = input("""Press 
+    mode = input("""
+Press 
 P - play 
 S - safe 
 B - both
@@ -25,6 +22,7 @@ B - both
 
 except EOFError:
     print("Обработали исключение EOFError")
+    raise SystemExit
 
 
 # 1 here is number of tracks
@@ -38,41 +36,52 @@ time = 0
 MyMIDI.addTrackName(track, time, "Sample Track")
 MyMIDI.addTempo(track, time, 120)
 random.seed()
-binfile = open(file, 'wb')
 
 
+# returns list of lists, which are melodies
 def make_music_rand():
-    seq = []
-    seq_ac = []
+    seq_seq = []
+    seq = [0]
+    seq_ac = [1]
+    seq_ac2 = [1]
     i = 0
-    while i < 99:
+    while i < 21:
         a = random.randint(1, 7)
         seq.append(a)
         i = i + 1
 
     i = 0
-    while i < 99:
+    while i < 21:
         a = random.randint(1, 7)
         seq_ac.append(a)
         i = i + 3
-    write_sequence_ac(seq_ac)
-    return seq
+
+    i = 0
+    while i < 21:
+        a = random.randint(1, 7)
+        seq_ac2.append(a)
+        i = i + 3
+
+    seq_seq.append(seq)
+    seq_seq.append(seq_ac)
+    seq_seq.append(seq_ac2)
+    return seq_seq
 
 
-# now we expect list here
-def write_sequence(args):
+# we expect list here
+def write_sequence(melody):
     print("writing sequence")
     order = 0
-    for arg in args:
-        write_note(switch(arg), order, 100)
+    for note_pos in range(1, len(melody)):
+        write_note(0, 0, switch(melody[note_pos]), order, 1, 100)
         order = order + 1
 
 
-# now we expect list here
-def write_sequence_ac(args):
+# we expect list here
+def write_sequence_ac(melody):
     order = 0
-    for arg in args:
-        write_accord(switch(arg), order)
+    for note_pos in range(1, len(melody)):
+        write_accord(0, 0, switch(melody[note_pos]), order, 1, 70)
         order = order + 3
 
 
@@ -98,39 +107,32 @@ def switch(x):
 
 
 # it is happy accord in do-major
-def write_accord(first_step, order):
+def write_accord(track_name, channel, first_step, order, duration, volume):
     if first_step == 0:
         return
 
-    track = 0
-    channel = 0
-    time = order
-    duration = 1
-    MyMIDI.addNote(track, channel, first_step, time, duration, 70)
-    MyMIDI.addNote(track, channel, first_step, time+1, duration, 60)
-    MyMIDI.addNote(track, channel, first_step, time+2, duration, 50)
+    MyMIDI.addNote(track_name, channel, first_step, order, duration, volume)
+    MyMIDI.addNote(track_name, channel, first_step, order+1, duration, volume - 20)
+    MyMIDI.addNote(track_name, channel, first_step, order+2, duration, volume - 40)
 
-    MyMIDI.addNote(track, channel, first_step+4, time, duration, 70)
-    MyMIDI.addNote(track, channel, first_step+4, time+1, duration, 60)
-    MyMIDI.addNote(track, channel, first_step+4, time+2, duration, 50)
+    MyMIDI.addNote(track_name, channel, first_step+4, order, duration, volume)
+    MyMIDI.addNote(track_name, channel, first_step+4, order+1, duration, volume - 20)
+    MyMIDI.addNote(track_name, channel, first_step+4, order+2, duration, volume - 40)
 
-    MyMIDI.addNote(track, channel, first_step+7, time, duration, 70)
-    MyMIDI.addNote(track, channel, first_step+7, time+1, duration, 60)
-    MyMIDI.addNote(track, channel, first_step+7, time+2, duration, 50)
+    MyMIDI.addNote(track_name, channel, first_step+7, order, duration, volume)
+    MyMIDI.addNote(track_name, channel, first_step+7, order+1, duration, volume - 20)
+    MyMIDI.addNote(track_name, channel, first_step+7, order+2, duration, volume - 40)
 
 
-# if the value is zero it will be second without volume
-def write_note(value, order, volume):
+# if the value is zero we write one beat of pause in melody
+def write_note(track_name, channel, value, time_n, duration, volume):
         if value == 0:
             return
         if isinstance(value, str):
-            write_accord(value, order)
+            write_accord(value, time)
             return
-        track = 0
-        channel = 0
-        time = order
-        duration = 1
-        MyMIDI.addNote(track, channel, value, time, duration, volume)
+
+        MyMIDI.addNote(track_name, channel, value, time_n, duration, volume)
 
 
 def play_music(music_file):
@@ -159,7 +161,7 @@ def ful_music_play(music_file):
     # So, here was 44100 but it gain very strange messages, but music was in better quality
     # ALSA lib pcm.c:7963:(snd_pcm_recover) under run occurred
     bitsize = -16  # unsigned 16 bit
-    channels = 2  # 1 is mono, 2 is stereo
+    channels = 1  # 1 is mono, 2 is stereo
     buffer = 1024  # number of samples
     pygame.mixer.init(freq, bitsize, channels, buffer)
     # optional volume 0 to 1.0
@@ -174,18 +176,28 @@ def ful_music_play(music_file):
         raise SystemExit
 
 
-if mode == 's' or mode == 'S':
-    write_sequence(make_music_rand())
-    MyMIDI.writeFile(binfile)
-    binfile.close()
-elif mode == 'b' or mode == 'B':
-    write_sequence(make_music_rand())
-    MyMIDI.writeFile(binfile)
-    binfile.close()
-    ful_music_play(file)
-elif mode == 'p' or mode == 'P':
+def write_full(fl_melody):
+    for seq in fl_melody:
+        if seq[0] == 0:
+            write_sequence(seq)
+        if seq[0] == 1:
+            write_sequence_ac(seq)
+
+
+full_melody = make_music_rand()
+if mode == 'p' or mode == 'P':
     print("play without saving")
+elif mode == 's' or mode == 'S':
+    with open(file, "wb") as binfile:
+        write_full(full_melody)
+        MyMIDI.writeFile(binfile)
+elif mode == 'b' or mode == 'B':
+    with open(file, "wb") as binfile:
+        write_full(full_melody)
+        MyMIDI.writeFile(binfile)
+        binfile.close()
+        ful_music_play(file)
 
 else:
-    print("incorrect mode")
+        print("incorrect mode")
 
