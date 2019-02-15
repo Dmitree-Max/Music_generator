@@ -2,6 +2,8 @@
 from midiutil.MidiFile import MIDIFile
 import random
 import pygame
+import shutil
+import os
 from optparse import OptionParser
 
 
@@ -187,6 +189,15 @@ def write_full(fl_melody):
 full_melody = make_music_rand()
 if mode == 'p' or mode == 'P':
     print("play without saving")
+    file_mode = os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
+    temp = os.open("Tempo.mid", file_mode)
+    os.close(temp)
+    with open("Tempo.mid", "wb") as temp2:
+        write_full(full_melody)
+        MyMIDI.writeFile(temp2)
+        temp2.close()
+        ful_music_play("Tempo.mid")
+        os.remove("Tempo.mid")
 elif mode == 's' or mode == 'S':
     with open(file, "wb") as binfile:
         write_full(full_melody)
