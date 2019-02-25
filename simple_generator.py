@@ -1,7 +1,7 @@
 
 from midiutil.MidiFile import MIDIFile
 import random
-import pygame
+import pygame.midi
 import shutil
 import os
 from optparse import OptionParser
@@ -29,6 +29,15 @@ except EOFError:
 
 # 1 here is number of tracks
 MyMIDI = MIDIFile(1)
+
+
+# system output
+pygame.midi.init()
+print(pygame.midi.get_default_output_id())
+print("AAA")
+print(pygame.midi.get_device_info(-1))
+print(pygame.midi.get_count())
+
 
 # Tracks are numbered from zero
 # Times are measured in beats
