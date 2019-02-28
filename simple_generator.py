@@ -2,8 +2,9 @@
 from midiutil.MidiFile import MIDIFile
 import random
 import pygame.midi
-import shutil
 import os
+import time
+import sys
 from optparse import OptionParser
 
 
@@ -13,30 +14,41 @@ options, remainder = parser.parse_args()
 file = options.filename
 
 
+start_time = time.time()
+
 # choose working mode
-try:
-    mode = input("""
-Press 
-P - play 
-S - safe 
-B - both
-""")
-
-except EOFError:
-    print("Обработали исключение EOFError")
-    raise SystemExit
-
-
-# 1 here is number of tracks
-MyMIDI = MIDIFile(1)
+i = 0
+while i < 5:
+    try:
+        mode = input("""
+    Press 
+    P - play 
+    S - safe 
+    B - both
+    """)
+    except EOFError:
+        if i < 4:
+            print("EOFError")
+            continue
+        else:
+            print("we ran into System crash")
+            sys.exit(-1)
+        break
+    break
+    i += 1
 
 
 # system output
+"""
 pygame.midi.init()
 print(pygame.midi.get_default_output_id())
 print("AAA")
 print(pygame.midi.get_device_info(-1))
 print(pygame.midi.get_count())
+"""
+
+# 1 here is number of tracks
+MyMIDI = MIDIFile(1)
 
 
 # Tracks are numbered from zero
@@ -50,37 +62,49 @@ random.seed()
 
 
 # returns list of lists, which are melodies
-def make_music_rand():
+def make_music_rand(note_threads_number, accord_threads_number, length):
+    """
+    this function produces melody which contains set of melodies: common, and accord-melodies
+    first argument: how many flows of common melodies do we want
+    second argument: how many flows of accord-melodies do we want
+    third argument: how many notes should be in the melody
+    :return:
+    list of list, so in fact it returns list of sequences, each of them has first element 0, if these are notes,
+     and 1 if accords!
+    """
     seq_seq = []
-    seq = [0]
-    seq_ac = [1]
-    seq_ac2 = [1]
-    i = 0
-    while i < 21:
-        a = random.randint(1, 7)
-        seq.append(a)
-        i = i + 1
 
-    i = 0
-    while i < 21:
-        a = random.randint(1, 7)
-        seq_ac.append(a)
-        i = i + 3
+    j = 0
+    while j < note_threads_number:
+        i = 0
+        seq = [0]
+        while i < length:
+            a = random.randint(1, 7)
+            seq.append(a)
+            i = i + 1
+        j += 1
+        seq_seq.append(seq)
 
-    i = 0
-    while i < 21:
-        a = random.randint(1, 7)
-        seq_ac2.append(a)
-        i = i + 3
+    j = 0
+    while j < accord_threads_number:
+        i = 0
+        seq_ac = [1]
+        while i < length:
+            a = random.randint(1, 7)
+            seq_ac.append(a)
+            i = i + 3
+        j += 1
+        seq_seq.append(seq_ac)
 
-    seq_seq.append(seq)
-    seq_seq.append(seq_ac)
-    seq_seq.append(seq_ac2)
+    print(seq_seq)
     return seq_seq
 
 
 # we expect list here
 def write_sequence(melody):
+    """
+    writes down a common -melody in my_midi file
+    """
     print("writing sequence")
     order = 0
     for note_pos in range(1, len(melody)):
@@ -90,6 +114,10 @@ def write_sequence(melody):
 
 # we expect list here
 def write_sequence_ac(melody):
+    """
+    writes down a accord-melody in my_midi file
+    """
+    print("writing sequence ac")
     order = 0
     for note_pos in range(1, len(melody)):
         write_accord(0, 0, switch(melody[note_pos]), order, 1, 70)
@@ -99,6 +127,11 @@ def write_sequence_ac(melody):
 # it returns number of note in MIDI designations
 # https://newt.phys.unsw.edu.au/jw/notes.html        it is link to the description of designations
 def switch(x):
+    """
+    just convert from human numeration into MIDI numeration
+    :param x: serial number of the note
+    :return: number of mote in midi cod
+    """
     return {
         1: 60,
         2: 62,
@@ -119,6 +152,11 @@ def switch(x):
 
 # it is happy accord in do-major
 def write_accord(track_name, channel, first_step, order, duration, volume):
+    """
+    this function writes an accord with the rule:
+    accord takes 3 slots in a row, volume is decreasing
+
+    """
     if first_step == 0:
         return
 
@@ -137,12 +175,6 @@ def write_accord(track_name, channel, first_step, order, duration, volume):
 
 # if the value is zero we write one beat of pause in melody
 def write_note(track_name, channel, value, time_n, duration, volume):
-        if value == 0:
-            return
-        if isinstance(value, str):
-            write_accord(value, time)
-            return
-
         MyMIDI.addNote(track_name, channel, value, time_n, duration, volume)
 
 
@@ -166,9 +198,7 @@ def play_music(music_file):
 
 def ful_music_play(music_file):
     print("playing music")
-    # pick a midi music file you have ...
-    # (if not in working folder use full path)
-    freq = 10100  # audio CD quality
+    freq = 40100  # audio CD quality
     # So, here was 44100 but it gain very strange messages, but music was in better quality
     # ALSA lib pcm.c:7963:(snd_pcm_recover) under run occurred
     bitsize = -16  # unsigned 16 bit
@@ -188,6 +218,12 @@ def ful_music_play(music_file):
 
 
 def write_full(fl_melody):
+    """
+    this function takes all melody flows and writes them into file one after another
+    if first number is 0 -> it is common melody, 1 -> accord-melody
+    :param fl_melody: list of melodies
+    :return: none
+    """
     for seq in fl_melody:
         if seq[0] == 0:
             write_sequence(seq)
@@ -195,7 +231,17 @@ def write_full(fl_melody):
             write_sequence_ac(seq)
 
 
-full_melody = make_music_rand()
+melody_length = 0
+while True:
+    melody_length_input = input("number of notes:")
+    if str.isnumeric(melody_length_input):
+        melody_length = int(melody_length_input)
+        break
+    else:
+        print("please write a number")
+
+
+full_melody = make_music_rand(1, 2, melody_length)
 if mode == 'p' or mode == 'P':
     print("play without saving")
     file_mode = os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
