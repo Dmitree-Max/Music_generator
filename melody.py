@@ -6,5 +6,13 @@ class Melody(object):
         :return: 
         """
         self.melody_type = melody_type
-        self.note_seq = []
+        self.note_sequence = list()
+
+    def add_note(self, note):
+        """
+        This functions add note into list: note sequence
+        :param note: (int) number of note in human numeration
+        :return: none
+        """
+        self.note_sequence.append(note)
 

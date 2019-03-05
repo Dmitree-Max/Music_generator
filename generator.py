@@ -13,28 +13,24 @@ def generate(note_threads_number, accord_threads_number, length):
     :param length: (int)how many notes should be in the melody
     :return: (list of Melody) all the melodies which music contains
     """
-    seq_seq = []
+    seq_seq = list()
 
-    j = 0
-    while j < note_threads_number:
+    for _ in range(0, note_threads_number):
         i = 0
-        this_mel = melody.Melody(0)
+        this_melody = melody.Melody(0)
         while i < length:
             a = random.randint(1, 7)
-            this_mel.note_seq.append(a)
+            this_melody.add_note(a)
             i = i + 1
-        j += 1
-        seq_seq.append(this_mel)
+        seq_seq.append(this_melody)
 
-    j = 0
-    while j < accord_threads_number:
+    for _ in range(0, accord_threads_number):
         i = 0
-        this_ac_mel = melody.Melody(1)
+        this_accord_melody = melody.Melody(1)
         while i < length:
             a = random.randint(1, 7)
-            this_ac_mel.note_seq.append(a)
+            this_accord_melody.add_note(a)
             i = i + 3
-        j += 1
-        seq_seq.append(this_ac_mel)
+        seq_seq.append(this_accord_melody)
 
     return seq_seq

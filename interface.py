@@ -6,8 +6,8 @@ def choose_working_mode():
     Function has input with common checks
     :return: (string) function returns each string input
     """
-    i = 0
-    while i < 5:
+    attempt = 0
+    while attempt < 5:
         try:
             mode = input("""
 Press 
@@ -36,11 +36,11 @@ def correct_int_input(messege):
     while True:
         value = input(messege)
         if str.isnumeric(value):
-            ret_value = int(value)
-            if ret_value > 0:
+            return_value = int(value)
+            if return_value >= 0:
                 break
             print("please write positive number")
         else:
             print("please write a number")
 
-    return ret_value
+    return return_value

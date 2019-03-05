@@ -1,12 +1,12 @@
-def write_music(fl_melody, midi_file):
+def write_music(full_melody, midi_file):
     """
     this function takes all melody flows and writes them into file one after another
     if first number is 0 -> it is common melody, 1 -> accord-melody
-    :param fl_melody: (list of melodies)
+    :param full_melody: (list of melodies) all flows of melodies that should be written in midi_file
     :param midi_file: (midi file) which should be initialized and open
     :return: none
     """
-    for seq in fl_melody:
+    for seq in full_melody:
         if seq.melody_type == 0:
             write_melody_common(seq, midi_file)
         if seq.melody_type == 1:
@@ -21,7 +21,7 @@ def write_melody_common(_melody, midi_file):
     :return: none
     """
     print("writing sequence")
-    for order, note in enumerate(_melody.note_seq):
+    for order, note in enumerate(_melody.note_sequence):
         write_note(0, 0, switch(note), order, 1, 100, midi_file)
 
 
@@ -33,7 +33,7 @@ def write_melody_accord(_melody, midi_file):
     :return: none
     """
     print("writing sequence ac")
-    for order, note in enumerate(_melody.note_seq):
+    for order, note in enumerate(_melody.note_sequence):
         write_accord(0, 0, switch(note), 3*order, 1, 70, midi_file)
 
 
