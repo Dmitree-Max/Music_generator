@@ -16,11 +16,14 @@ S - safe
 B - both
 """
                          )
-            break
+            if mode in "PpSsBb":
+                break
+            else:
+                print("incorrect mode")
         except EOFError:
-            if i < 4:
+            if attempt < 4:
                 print("EOFError")
-                i += 1
+                attempt += 1
             else:
                 print("we ran into System crash")
                 sys.exit(-1)

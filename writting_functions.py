@@ -1,4 +1,4 @@
-def write_music(full_melody, midi_file):
+def write_music(full_melody, midi_file, channel):
     """
     this function takes all melody flows and writes them into file one after another
     if first number is 0 -> it is common melody, 1 -> accord-melody
@@ -6,11 +6,13 @@ def write_music(full_melody, midi_file):
     :param midi_file: (midi file) which should be initialized and open
     :return: none
     """
-    for seq in full_melody:
-        if seq.melody_type == 0:
-            write_melody_common(seq, midi_file)
-        if seq.melody_type == 1:
-            write_melody_accord(seq, midi_file)
+    track_name = 0
+    for melody in full_melody:
+        keys_list = list(melody.note_sequence.keys())
+        keys_list.sort()
+        for time in keys_list:
+            write_cluster(track_name, channel, melody.note_sequence[time], midi_file, time)
+        track_name += 1
 
 
 def write_melody_common(_melody, midi_file):
@@ -53,8 +55,8 @@ def switch(x):
         5: 67,
         6: 69,
         7: 71,
-        8: 'A',
-        9: 'B',
+        8: 73,
+        9: 75,
         10: 'C',
         11: 'D',
         12: 'E',
@@ -96,4 +98,19 @@ def write_accord(track_name, channel, first_step, order, duration, volume, midi_
     midi_file.addNote(track_name, channel, first_step+7, order, duration, volume)
     midi_file.addNote(track_name, channel, first_step+7, order+1, duration, volume - 20)
     midi_file.addNote(track_name, channel, first_step+7, order+2, duration, volume - 40)
+
+
+def write_cluster(track_name, channel, cluster, mide_file, time):
+    """
+
+    :param track_name:
+    :param channel:
+    :param cluster:
+    :param mide_file:
+    :param time:
+    :return:
+    """
+    for note in cluster.sounds:
+        mide_file.addNote(track_name, channel, note, time, cluster.duration, cluster.volume)
+
 
