@@ -38,27 +38,36 @@ class Cluster(object):
         melody_type(int): type of our melody,where 0 is common, 1 is accord
         :return:
         """
-        self.duration = duration
-        self.volume = volume
-        self.sounds = list()
+        self._duration = duration
+        self._volume = volume
+        self._sounds = list()
+
+    duration = property()
+    volume = property()
+    sounds = property()
+
+    @duration.getter
+    def duration(self):
+        return self._duration
+
+    @duration.setter
+    def duration(self, value):
+        self._duration = value
 
     def count(self):
-        return self.sounds.len()
+        return self._sounds.len()
 
-    def get_duration(self):
-        return self.duration
+    @volume.getter
+    def volume(self):
+        return self._volume
 
-    def set_duration(self, duration):
-        self.duration = duration
+    @sounds.getter
+    def sounds(self):
+        return self._sounds
 
-    def get_volume(self):
-        return self.volume
-
-    def set_sounds(self, sounds_list):
-        self.sounds = sounds_list
-
-    def get_sounds(self):
-        return self.sounds
+    @sounds.setter
+    def sounds(self, value):
+        self._sounds = value
 
     def add_note(self, note):
         """
@@ -69,7 +78,7 @@ class Cluster(object):
         self.sounds.append(note)
 
     def write(self):
-        print(self.sounds, self.duration)
+        print(self.sounds, self.duration, self._volume)
 
 
 def merge(main_cluster, second_cluster):
@@ -80,8 +89,8 @@ def merge(main_cluster, second_cluster):
     :param second_cluster: (Cluster) Notes from this cluster go into union
     :return: (Cluster) contents sounds from both clusters, but volume and duration from first
     """
-    union = Cluster(Cluster.get_duration(main_cluster), Cluster.get_volume(main_cluster))
-    union.set_sounds(Cluster.get_sounds(main_cluster), Cluster.get_sounds(second_cluster))
+    union = Cluster(Cluster.main_cluster.duration, Cluster.get_volume(main_cluster))
+    union.set_sounds(Cluster.main_cluster.sounds, Cluster.second_cluster.sounds)
     return union
 
 

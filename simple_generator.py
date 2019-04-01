@@ -21,16 +21,17 @@ common_threads_number = interface.correct_int_input("note flows:")
 accord_thread_number = interface.correct_int_input("accord flows:")
 
 # argument here is number of tracks
-MyMIDI = MIDIFile(common_threads_number + accord_thread_number)
-for i in range(0, common_threads_number + accord_thread_number - 1):
+MyMIDI = MIDIFile(common_threads_number + accord_thread_number + 1)
+for i in range(0, common_threads_number + accord_thread_number):
     MyMIDI.addTrackName(i, 0, "Sample Track")
     MyMIDI.addTempo(i, 0, 120)
 
 
 do_major = [0, 2, 4, 5, 7, 9, 11]
-sol_minor = [0, 2, 3, 5, 7, 9, 10]
+sol_minor = [7, 9, 10, 0, 2, 3, 5]
 
-full_melody = generator.generate(common_threads_number, accord_thread_number, melody_length, sol_minor, positivity=0)
+full_melody = generator.generate(common_threads_number, accord_thread_number, melody_length, do_major, positivity=1, tempo=1)
+# full_melody = generator.create_melody_core(do_major, 1, melody_length, 2)
 melody.print_music(full_melody)
 
 
