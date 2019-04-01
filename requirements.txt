@@ -1,0 +1,2 @@
+MIDIUtil==1.2.1
+pygame.mixer==1.9.4
